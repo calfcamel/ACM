@@ -1,67 +1,60 @@
 #include <stdio.h>
-#include <string.h>
-#include <vector>
 #include <algorithm>
+#include <string.h>
 
-#define clr(a,b) memset(a,b,sizeof(a))
-#define FORR(x,y) for(int x = 1, __END__ = (int)(y); x <= __END__; x++)
-#define FOR(x,y) for(int x = 0, __END__ = (int)(y); x < __END__; x++)
-#define REP(x,z,y) for(int x = (int)(z), __END__ = (int)(y); x <= __END__; x++)
+int n;
+long long m;
+long long a[21][21];
+const int HASH = 10007;
+const int STATE = 1000000;
 
-const long long MOD = 1000000000 + 7;
-
-typedef std::pair<int, int> pii;
-typedef std::pair<pii, int> piii;
-
-#define MP3(x,y,z) std::make_pair(std::make_pair(x,y),z)
-#define MP(x,y) std::make_pair(x,y)
-#define PB(x) push_back(x)
-#define all(x) x.begin(),x.end()
-#define AA first
-#define X first.first
-#define Y first.second
-#define BB second
-
-#define ccmin(x,y) {if(x == -1) x = (y); else x = std::min(x,(y));}
-int n,k;
-std::vector<piii> v;
-inline int getx(int x)
+struct node
 {
-    if(x == 1) return 1;
-    if(x == 2) return 3;
-    return 2;
-}
-long long dp[2][400][400];
+    int h[HASH], st[STATE], nxt[STATE], tot;
+    long long dp[STATE];
+    void init()
+    {
+        tot = 0;
+        memset(h, -1, sizeof h);
+    }
+    void push(int s, long long f)
+    {
+        //printf("PUSH %d %lld\n", s, f);
+        int p = s % HASH;
+        for(int i = h[p]; ~i; i = nxt[i])
+            if(st[i] == s)
+            {
+                dp[i] = (dp[i] + f) % m;
+                return;
+            }
+        st[tot] = s;
+        dp[tot] = f;
+        nxt[tot] = h[p];
+        h[p] = tot++;
+    }
+}hm[2];
 int main()
 {
-    scanf("%d%d",&n,&k);
-    int x,y,z;
-    FOR(i,n)
-    {
-        scanf("%d%d%d",&x,&y,&z);
-        v.PB(MP3(-y,getx(x),z));
-    }
-    sort(all(v));
+    scanf("%d%lld",&n,&m);
+    for(int i = 0; i < n; i++)
+        for(int j = 0; j < n; j++)
+            scanf("%lld",&a[i][j]);
     int cur = 0;
-    clr(dp,-1);
-    dp[cur][0][0] = 0;
-    FOR(l,n)
+    hm[cur].init();
+    hm[cur].push(0,1);
+    for(int i = 0; i < n; i++)
     {
-        //printf("item %d %d %d %d\n", l, v[l].X, v[l].Y, v[l].BB);
-        //clr(dp[cur ^ 1], -1);
-        dp[cur][0][0] = 0;
-        REP(i,0,k) REP(j,0,k) if(~dp[cur][i][j])
+        hm[cur ^ 1].init();
+        for(int j = 0; j < hm[cur].tot; j++)
         {
-            ccmin(dp[cur ^ 1][i][j], dp[cur][i][j]);
-            //printf("dp %d %d = %lld\n",i,j,dp[cur][i][j]);
-            if(v[l].Y == 1) ccmin(dp[cur ^ 1][i + 1][j], dp[cur][i][j] + v[l].BB);
-            if(v[l].Y == 2) ccmin(dp[cur ^ 1][i + 1][j], dp[cur][i][j] + v[l].BB);
-            if(v[l].Y == 2 && i > j) ccmin(dp[cur ^ 1][i][j + 1], dp[cur][i][j] + v[l].BB);
-            if(v[l].Y == 3 && i > j) ccmin(dp[cur ^ 1][i][j + 1], dp[cur][i][j] + v[l].BB);
-            //printf("UPDATE dp %d %d = %lld\n",i + 1, j, dp[cur ^ 1][i + 1][j]);
-            //printf("UPDATE dp %d %d = %lld\n",i, j + 1, dp[cur ^ 1][i][j + 1]);
+            for(int k = 0; k < n; k++)
+                if(((hm[cur].st[j]) & (1 << k)) == 0)
+                {
+                    hm[cur ^ 1].push(hm[cur].st[j] | (1 << k), hm[cur].dp[j] * a[i][k] % m);
+                }
         }
         cur ^= 1;
     }
-    printf("%lld\n",dp[cur][k][k]);
+    printf("%lld\n", hm[cur].dp[0]);
+    return 0;
 }
