@@ -18,7 +18,7 @@ long long mypow(long long b)
 	{
 		if(b & 1) ret = ret * a % mod;
 		a = a * a % mod;
-		b >>= 1;
+		b >>= 1; // b = b / 2
 	}
 	return ret;
 }
