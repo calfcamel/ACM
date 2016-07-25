@@ -1,3 +1,4 @@
+
 #include <cstring>
 #include <cstdio>
 #include <cmath>
@@ -113,8 +114,9 @@ int main()
         int myang = (1 << 9) - 1;
         int mask;
         hm[cur].push(getst(yang,yin,pre,k), 0);
-        FOR(l,(n << 1) - 1)
+        FOR(l,(n << 1))
         {
+            //printf("level %d:\n",l);
             hm[cur ^ 1].init();
             FOR(it,hm[cur].size)
             {
@@ -126,13 +128,18 @@ int main()
                 yin = mask & myin;
                 mask >>= 9;
                 yang = mask & myang;
+
+                //printf("\t%d %d %d %d %d\n",yang,yin,pre,k,hm[cur].f[it]);
+                if(l == n * 2 - 1) break;
                 if(l & 1)
                 {
                     pre -= 9;
                     if(k == 2) continue;
                     FOR(i,n - 1) if(!(yin & (1 << i)))
                     {
-                        if(k == 0 && a[pre][i]) continue;
+                        //printf("\t\t k = %d pre = %d i = %d a = %d\n",k,pre,i,a[pre][i]);
+                        if(k == 0 && a[pre][i + 1]) continue;
+                        //printf("\t\tpush %d %d %d %d %d\n",yang, yin | (1 << i), i + 1, 2, hm[cur].f[it]);
                         hm[cur ^ 1].push(getst(yang, yin | (1 << i), i + 1, 2), hm[cur].f[it]);
                     }
                 }
@@ -143,17 +150,30 @@ int main()
                     FOR(i, n) if(!(yang & (1 << i)))
                     {
                         hm[cur ^ 1].push(getst(yang | (1 << i), yin, i + 10, 1), hm[cur].f[it] + 1);
-                        if(!a[i][pre])
+                        if(!a[i + 1][pre])
                             hm[cur ^ 1].push(getst(yang | (1 << i), yin, i + 10, 0), hm[cur].f[it]);
                     }
                 }
             }
+            if(l == 2 * n - 1) break;
             cur ^= 1;
         }
         int ans = 9;
         FOR(it, hm[cur].size)
         {
-            ans = std::min(ans, hm[cur].f[it]);
+            int mask = hm[cur].state[it];
+                k = mask & mk;
+                mask >>= 2;
+                pre = mask & mp;
+                mask >>= 5;
+                yin = mask & myin;
+                mask >>= 9;
+                yang = mask & myang;
+            //printf("\t%d %d %d %d %d\n",yang,yin,pre,k,hm[cur].f[it]);
+            int tmp = hm[cur].f[it];
+            if(k == 0 && a[pre - 9][n]) tmp++;
+            ans = min(ans, tmp);
+            //ans = std::min(ans, hm[cur].f[it] + (((hm[cur].state[it]) & 3) ? 0:(a[(hm[cur].state[it] >> 2) & mp][n])));
         }
         printf("%d\n",ans);
     }
